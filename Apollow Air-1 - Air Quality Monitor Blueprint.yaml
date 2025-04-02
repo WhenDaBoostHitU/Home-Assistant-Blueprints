@@ -34,6 +34,7 @@ blueprint:
       selector:
         number:
           min: 0
+          max: 500
     pm25_trigger_below:
       name: PM2.5 Trigger Below
       description: "Maximum PM2.5 value to trigger the alert."
@@ -41,6 +42,7 @@ blueprint:
       selector:
         number:
           min: 0
+          max: 500
     pm25_condition_below:
       name: PM2.5 Condition Below
       description: "Ensure PM2.5 value is below this threshold to validate the alert."
@@ -48,10 +50,11 @@ blueprint:
       selector:
         number:
           min: 0
+          max: 500
     pm25_icon:
       name: PM2.5 Icon
-      description: "Icon to use in the PM2.5 notification."
-      default: mdi:chemical-weapon-yellow
+      description: "Icon to use in the PM2.5 notification (use mdi: format without file extension)."
+      default: mdi:chemical-weapon
       selector:
         icon: {}
     #
@@ -70,6 +73,7 @@ blueprint:
       selector:
         number:
           min: 0
+          max: 5000
     co2_trigger_below:
       name: CO₂ Trigger Below
       description: "Maximum CO₂ value to trigger the alert."
@@ -77,6 +81,7 @@ blueprint:
       selector:
         number:
           min: 0
+          max: 5000
     co2_condition_below:
       name: CO₂ Condition Below
       description: "Ensure CO₂ value is below this threshold to validate the alert."
@@ -84,10 +89,11 @@ blueprint:
       selector:
         number:
           min: 0
+          max: 5000
     co2_icon:
       name: CO₂ Icon
-      description: "Icon to use in the CO₂ notification."
-      default: mdi:molecule-co2-yellow
+      description: "Icon to use in the CO₂ notification (use mdi: format without file extension)."
+      default: mdi:molecule-co2
       selector:
         icon: {}
     #
@@ -106,6 +112,7 @@ blueprint:
       selector:
         number:
           min: 0
+          max: 1000
     voc_trigger_below:
       name: VOC Trigger Below
       description: "Maximum VOC value to trigger the alert."
@@ -113,10 +120,11 @@ blueprint:
       selector:
         number:
           min: 0
+          max: 1000
     voc_icon:
       name: VOC Icon
-      description: "Icon to use in the VOC notification."
-      default: mdi:radiator-yellow
+      description: "Icon to use in the VOC notification (use mdi: format without file extension)."
+      default: mdi:radiator
       selector:
         icon: {}
     #
@@ -126,8 +134,7 @@ blueprint:
       name: Light to Turn On
       description: "Select a light to turn on during the alert (optional)."
       selector:
-        device:
-          integration: hass
+        entity:
           domain: light
       default: ""
     scene_to_activate:
@@ -139,10 +146,11 @@ blueprint:
       default: ""
     notification_service:
       name: Notification Service
-      description: "Select the notification service to send alerts."
-      selector:
-        service: {}
+      description: "Notification service to send alerts (e.g. notify.mobile_app_sm_s908u)."
       default: notify.mobile_app_sm_s908u
+      selector:
+        text:
+          placeholder: "notify.mobile_app_sm_s908u"
 
 trigger:
   - platform: device
@@ -231,7 +239,7 @@ action:
         sequence:
           - service: light.turn_on
             target:
-              device_id: !input light_to_turn_on
+              entity_id: !input light_to_turn_on
       - conditions:
           - condition: template
             value_template: "{{ scene_to_activate != '' }}"
