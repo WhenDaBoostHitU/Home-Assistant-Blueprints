@@ -1,5 +1,5 @@
 blueprint:
-  name: Air Quality with Type Selection (Custom Notifications, Room & Rate Limiting)
+  name: Air Quality with Type Selection (Custom Notifications, Room, Rate Limiting & Template Conditions)
   description: >
     This blueprint triggers actions based on air quality sensor readings.
     Select an air quality type (Good, Moderate, Bad, Severe, or Custom) and use preset thresholds unless Custom is chosen.
@@ -279,53 +279,47 @@ trigger:
 condition:
   - condition: and
     conditions:
-      - condition: device
-        type: is_pm25
-        device_id: !input air_quality_device
-        entity_id: !input pm25_sensor
-        domain: sensor
-        below: >
+      - condition: template
+        value_template: >
+          {% set pm25_val = states(pm25_sensor)|float %}
           {% if air_quality_type == "Good" %}
-            9
+            {{ pm25_val < 9 }}
           {% elif air_quality_type == "Moderate" %}
-            35.4
+            {{ pm25_val < 35.4 }}
           {% elif air_quality_type == "Bad" %}
-            55.4
+            {{ pm25_val < 55.4 }}
           {% elif air_quality_type == "Severe" %}
-            9999
+            {{ pm25_val < 9999 }}
           {% else %}
-            {{ custom_pm25_max }}
+            {{ pm25_val < (custom_pm25_max|float) }}
           {% endif %}
-      - condition: device
-        type: is_carbon_dioxide
-        device_id: !input air_quality_device
-        entity_id: !input co2_sensor
-        domain: sensor
-        below: >
+      - condition: template
+        value_template: >
+          {% set co2_val = states(co2_sensor)|float %}
           {% if air_quality_type == "Good" %}
-            800
+            {{ co2_val < 800 }}
           {% elif air_quality_type == "Moderate" %}
-            1000
+            {{ co2_val < 1000 }}
           {% elif air_quality_type == "Bad" %}
-            1500
+            {{ co2_val < 1500 }}
           {% elif air_quality_type == "Severe" %}
-            9999
+            {{ co2_val < 9999 }}
           {% else %}
-            {{ custom_co2_max }}
+            {{ co2_val < (custom_co2_max|float) }}
           {% endif %}
-      - condition: numeric_state
-        entity_id: !input voc_sensor
-        below: >
+      - condition: template
+        value_template: >
+          {% set voc_val = states(voc_sensor)|float %}
           {% if air_quality_type == "Good" %}
-            101
+            {{ voc_val < 101 }}
           {% elif air_quality_type == "Moderate" %}
-            151
+            {{ voc_val < 151 }}
           {% elif air_quality_type == "Bad" %}
-            251
+            {{ voc_val < 251 }}
           {% elif air_quality_type == "Severe" %}
-            9999
+            {{ voc_val < 9999 }}
           {% else %}
-            {{ custom_voc_max }}
+            {{ voc_val < (custom_voc_max|float) }}
           {% endif %}
 
 mode: single
