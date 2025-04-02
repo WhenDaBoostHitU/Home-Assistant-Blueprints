@@ -1,257 +1,446 @@
 blueprint:
-  name: Air Quality - Customizable Alert
+  name: Apollo Air-1 Sensor Notification
+  author: ChatGPT
   description: >
-    This blueprint monitors air quality sensors for PM2.5, CO₂, and VOC levels and triggers alerts
-    when sensor values are within defined thresholds. Customize the air quality type label (e.g. "moderate"),
-    thresholds, icons, and the room/area. Optionally, select a light and/or scene to activate during the alert.
+    This blueprint monitors Apollo Air-1 sensor values for CO₂, PM2.5, VOC, NOx, Carbon Monoxide,
+    Ethanol, Hydrogen, NO₂, Ammonia, and Methane. If any sensor value exceeds its defined threshold,
+    a notification is sent (including the selected air quality type), the selected LED is turned on,
+    and a scene is activated.
   domain: automation
   input:
-    room:
-      name: Room/Area
-      description: "The room or area where the sensors are located."
-      default: Living Room
+    area_name:
+      name: Area Name
+      description: "Enter the area where the sensor is located (used in notifications)."
       selector:
         text: {}
+    notify_device:
+      name: Notify Device
+      description: "Select the device to send the notification to."
+      selector:
+        device:
+          integration: mobile_app
+          multiple: false
     air_quality_type:
       name: Air Quality Type
-      description: "Label for the air quality type (e.g. moderate)."
-      default: moderate
+      description: "Select the air quality level."
+      default: Moderate
       selector:
-        text: {}
+        select:
+          options:
+            - Good
+            - Bad
+            - Moderate
+            - Severe
     #
-    # PM2.5 Settings
+    # Sensor Settings
     #
-    pm25_sensor:
-      name: PM2.5 Sensor
-      description: "Select the PM2.5 sensor."
-      selector:
-        entity:
-          domain: sensor
-    pm25_trigger_above:
-      name: PM2.5 Trigger Above
-      description: "Minimum PM2.5 value to trigger the alert."
-      default: 9
-      selector:
-        number:
-          mode: slider
-          min: 0
-          max: 500
-    pm25_trigger_below:
-      name: PM2.5 Trigger Below
-      description: "Maximum PM2.5 value to trigger the alert."
-      default: 35.5
-      selector:
-        number:
-          mode: slider
-          min: 0
-          max: 500
-    pm25_condition_below:
-      name: PM2.5 Condition Below
-      description: "Ensure PM2.5 value is below this threshold to validate the alert."
-      default: 35.5
-      selector:
-        number:
-          mode: slider
-          min: 0
-          max: 500
-    pm25_icon:
-      name: PM2.5 Icon
-      description: "Icon to use in the PM2.5 notification (use mdi: format without file extension)."
-      default: mdi:chemical-weapon
-      selector:
-        icon: {}
+    co2_settings:
+      name: CO₂
+      icon: mdi:molecule-co2
+      collapsed: true
+      input:
+        co2_sensor:
+          name: CO₂ Sensor
+          description: "Select the CO₂ sensor."
+          default: 'sensor.nonexistent_co2'
+          selector:
+            entity:
+              domain: sensor
+              device_class: carbon_dioxide
+        max_co2:
+          name: Maximum CO₂
+          description: "Maximum acceptable CO₂ level (ppm)."
+          default: 1000
+          selector:
+            number:
+              mode: slider
+              min: 0
+              max: 5000
+              unit_of_measurement: ppm
+
+    pm25_settings:
+      name: PM2.5
+      icon: mdi:weather-fog
+      collapsed: true
+      input:
+        pm25_sensor:
+          name: PM2.5 Sensor
+          description: "Select the PM2.5 sensor."
+          default: 'sensor.nonexistent_pm25'
+          selector:
+            entity:
+              domain: sensor
+        max_pm25:
+          name: Maximum PM2.5
+          description: "Maximum acceptable PM2.5 level (µg/m³)."
+          default: 25
+          selector:
+            number:
+              mode: slider
+              min: 0
+              max: 500
+              unit_of_measurement: µg/m³
+
+    voc_settings:
+      name: VOC
+      icon: mdi:chemical-weapon
+      collapsed: true
+      input:
+        voc_sensor:
+          name: VOC Sensor
+          description: "Select the VOC sensor."
+          default: 'sensor.nonexistent_voc'
+          selector:
+            entity:
+              domain: sensor
+        max_voc:
+          name: Maximum VOC
+          description: "Maximum acceptable VOC value."
+          default: 400
+          selector:
+            number:
+              mode: slider
+              min: 0
+              max: 1000
+
+    nox_settings:
+      name: NOx
+      icon: mdi:weather-lightning
+      collapsed: true
+      input:
+        nox_sensor:
+          name: NOx Sensor
+          description: "Select the NOx sensor."
+          default: 'sensor.nonexistent_nox'
+          selector:
+            entity:
+              domain: sensor
+        max_nox:
+          name: Maximum NOx
+          description: "Maximum acceptable NOx level (ppb)."
+          default: 30
+          selector:
+            number:
+              mode: slider
+              min: 0
+              max: 200
+              unit_of_measurement: ppb
+
+    carbon_monoxide_settings:
+      name: Carbon Monoxide
+      icon: mdi:molecule-co
+      collapsed: true
+      input:
+        carbon_monoxide_sensor:
+          name: Carbon Monoxide Sensor
+          description: "Select the carbon monoxide sensor."
+          default: 'sensor.nonexistent_co'
+          selector:
+            entity:
+              domain: sensor
+        max_carbon_monoxide:
+          name: Maximum Carbon Monoxide
+          description: "Maximum acceptable carbon monoxide level (ppm)."
+          default: 10
+          selector:
+            number:
+              mode: slider
+              min: 0
+              max: 100
+              unit_of_measurement: ppm
+
+    ethanol_settings:
+      name: Ethanol
+      icon: mdi:glass-wine
+      collapsed: true
+      input:
+        ethanol_sensor:
+          name: Ethanol Sensor
+          description: "Select the ethanol sensor."
+          default: 'sensor.nonexistent_ethanol'
+          selector:
+            entity:
+              domain: sensor
+        max_ethanol:
+          name: Maximum Ethanol
+          description: "Maximum acceptable ethanol level (ppb)."
+          default: 50
+          selector:
+            number:
+              mode: slider
+              min: 0
+              max: 500
+              unit_of_measurement: ppb
+
+    hydrogen_settings:
+      name: Hydrogen
+      icon: mdi:gas-cylinder
+      collapsed: true
+      input:
+        hydrogen_sensor:
+          name: Hydrogen Sensor
+          description: "Select the hydrogen sensor."
+          default: 'sensor.nonexistent_hydrogen'
+          selector:
+            entity:
+              domain: sensor
+        max_hydrogen:
+          name: Maximum Hydrogen
+          description: "Maximum acceptable hydrogen level (ppm)."
+          default: 1
+          selector:
+            number:
+              mode: slider
+              min: 0
+              max: 10
+              unit_of_measurement: ppm
+
+    no2_settings:
+      name: NO₂
+      icon: mdi:gas-cylinder
+      collapsed: true
+      input:
+        no2_sensor:
+          name: NO₂ Sensor
+          description: "Select the NO₂ sensor."
+          default: 'sensor.nonexistent_no2'
+          selector:
+            entity:
+              domain: sensor
+        max_no2:
+          name: Maximum NO₂
+          description: "Maximum acceptable NO₂ level (ppb)."
+          default: 20
+          selector:
+            number:
+              mode: slider
+              min: 0
+              max: 200
+              unit_of_measurement: ppb
+
+    ammonia_settings:
+      name: Ammonia
+      icon: mdi:chemical-weapon
+      collapsed: true
+      input:
+        ammonia_sensor:
+          name: Ammonia Sensor
+          description: "Select the ammonia sensor."
+          default: 'sensor.nonexistent_ammonia'
+          selector:
+            entity:
+              domain: sensor
+        max_ammonia:
+          name: Maximum Ammonia
+          description: "Maximum acceptable ammonia level (ppm)."
+          default: 10
+          selector:
+            number:
+              mode: slider
+              min: 0
+              max: 50
+              unit_of_measurement: ppm
+
+    methane_settings:
+      name: Methane
+      icon: mdi:chemical-weapon
+      collapsed: true
+      input:
+        methane_sensor:
+          name: Methane Sensor
+          description: "Select the methane sensor."
+          default: 'sensor.nonexistent_methane'
+          selector:
+            entity:
+              domain: sensor
+        max_methane:
+          name: Maximum Methane
+          description: "Maximum acceptable methane level (ppm)."
+          default: 10
+          selector:
+            number:
+              mode: slider
+              min: 0
+              max: 50
+              unit_of_measurement: ppm
+
     #
-    # CO₂ Settings
+    # Apollo Air-1 LED and Scene Settings
     #
-    co2_sensor:
-      name: CO₂ Sensor
-      description: "Select the CO₂ sensor."
-      selector:
-        entity:
-          domain: sensor
-    co2_trigger_above:
-      name: CO₂ Trigger Above
-      description: "Minimum CO₂ value to trigger the alert."
-      default: 799
-      selector:
-        number:
-          mode: slider
-          min: 0
-          max: 5000
-    co2_trigger_below:
-      name: CO₂ Trigger Below
-      description: "Maximum CO₂ value to trigger the alert."
-      default: 1000
-      selector:
-        number:
-          mode: slider
-          min: 0
-          max: 5000
-    co2_condition_below:
-      name: CO₂ Condition Below
-      description: "Ensure CO₂ value is below this threshold to validate the alert."
-      default: 1000
-      selector:
-        number:
-          mode: slider
-          min: 0
-          max: 5000
-    co2_icon:
-      name: CO₂ Icon
-      description: "Icon to use in the CO₂ notification (use mdi: format without file extension)."
-      default: mdi:molecule-co2
-      selector:
-        icon: {}
-    #
-    # VOC Settings
-    #
-    voc_sensor:
-      name: VOC Sensor
-      description: "Select the VOC sensor."
-      selector:
-        entity:
-          domain: sensor
-    voc_trigger_above:
-      name: VOC Trigger Above
-      description: "Minimum VOC value to trigger the alert."
-      default: 99
-      selector:
-        number:
-          mode: slider
-          min: 0
-          max: 1000
-    voc_trigger_below:
-      name: VOC Trigger Below
-      description: "Maximum VOC value to trigger the alert."
-      default: 150
-      selector:
-        number:
-          mode: slider
-          min: 0
-          max: 1000
-    voc_icon:
-      name: VOC Icon
-      description: "Icon to use in the VOC notification (use mdi: format without file extension)."
-      default: mdi:radiator
-      selector:
-        icon: {}
-    #
-    # Optional Actions
-    #
-    light_to_turn_on:
-      name: Light to Turn On
-      description: "Select a light to turn on during the alert (optional)."
-      selector:
-        entity:
-          domain: light
-      default: null
-    scene_to_activate:
-      name: Scene to Activate
-      description: "Select a scene to activate during the alert (optional)."
-      selector:
-        entity:
-          domain: scene
-      default: null
-    notification_service:
-      name: Notification Service
-      description: "Notification service to send alerts (e.g. notify.mobile_app_sm_s908u)."
-      default: notify.mobile_app_sm_s908u
-      selector:
-        text: {}
+    apollo_led_settings:
+      name: Apollo Air-1 LED & Scene
+      icon: mdi:led-on
+      collapsed: false
+      input:
+        apollo_led:
+          name: Apollo Air-1 LED
+          description: "Select the LED of the Apollo Air-1 device."
+          selector:
+            entity:
+              domain: light
+        apollo_scene:
+          name: Apollo Scene
+          description: "Select the scene to activate."
+          default: null
+          selector:
+            entity:
+              domain: scene
+
+variables:
+  area_name: !input area_name
+  notify_device: !input notify_device
+  air_quality_type: !input air_quality_type
+  co2_sensor: !input co2_settings.co2_sensor
+  max_co2: !input co2_settings.max_co2
+  pm25_sensor: !input pm25_settings.pm25_sensor
+  max_pm25: !input pm25_settings.max_pm25
+  voc_sensor: !input voc_settings.voc_sensor
+  max_voc: !input voc_settings.max_voc
+  nox_sensor: !input nox_settings.nox_sensor
+  max_nox: !input nox_settings.max_nox
+  carbon_monoxide_sensor: !input carbon_monoxide_settings.carbon_monoxide_sensor
+  max_carbon_monoxide: !input carbon_monoxide_settings.max_carbon_monoxide
+  ethanol_sensor: !input ethanol_settings.ethanol_sensor
+  max_ethanol: !input ethanol_settings.max_ethanol
+  hydrogen_sensor: !input hydrogen_settings.hydrogen_sensor
+  max_hydrogen: !input hydrogen_settings.max_hydrogen
+  no2_sensor: !input no2_settings.no2_sensor
+  max_no2: !input no2_settings.max_no2
+  ammonia_sensor: !input ammonia_settings.ammonia_sensor
+  max_ammonia: !input ammonia_settings.max_ammonia
+  methane_sensor: !input methane_settings.methane_sensor
+  max_methane: !input methane_settings.max_methane
+  apollo_led: !input apollo_led_settings.apollo_led
+  apollo_scene: !input apollo_led_settings.apollo_scene
 
 trigger:
-  - platform: device
-    device_id: !input pm25_sensor
-    domain: sensor
-    entity_id: !input pm25_sensor
-    type: pm25
-    above: !input pm25_trigger_above
-    below: !input pm25_trigger_below
-    id: PM2.5
-  - platform: device
-    device_id: !input co2_sensor
-    domain: sensor
-    entity_id: !input co2_sensor
-    type: carbon_dioxide
-    above: !input co2_trigger_above
-    below: !input co2_trigger_below
+  - platform: numeric_state
+    entity_id: !input co2_settings.co2_sensor
+    above: !input co2_settings.max_co2
     id: CO2
   - platform: numeric_state
-    entity_id: !input voc_sensor
-    above: !input voc_trigger_above
-    below: !input voc_trigger_below
+    entity_id: !input pm25_settings.pm25_sensor
+    above: !input pm25_settings.max_pm25
+    id: PM2.5
+  - platform: numeric_state
+    entity_id: !input voc_settings.voc_sensor
+    above: !input voc_settings.max_voc
     id: VOC
-
-condition:
-  - condition: and
-    conditions:
-      - condition: numeric_state
-        entity_id: !input pm25_sensor
-        below: !input pm25_condition_below
-      - condition: numeric_state
-        entity_id: !input co2_sensor
-        below: !input co2_condition_below
-      - condition: numeric_state
-        entity_id: !input voc_sensor
-        below: !input voc_trigger_below
+  - platform: numeric_state
+    entity_id: !input nox_settings.nox_sensor
+    above: !input nox_settings.max_nox
+    id: NOx
+  - platform: numeric_state
+    entity_id: !input carbon_monoxide_settings.carbon_monoxide_sensor
+    above: !input carbon_monoxide_settings.max_carbon_monoxide
+    id: CO
+  - platform: numeric_state
+    entity_id: !input ethanol_settings.ethanol_sensor
+    above: !input ethanol_settings.max_ethanol
+    id: Ethanol
+  - platform: numeric_state
+    entity_id: !input hydrogen_settings.hydrogen_sensor
+    above: !input hydrogen_settings.max_hydrogen
+    id: Hydrogen
+  - platform: numeric_state
+    entity_id: !input no2_settings.no2_sensor
+    above: !input no2_settings.max_no2
+    id: NO2
+  - platform: numeric_state
+    entity_id: !input ammonia_settings.ammonia_sensor
+    above: !input ammonia_settings.max_ammonia
+    id: Ammonia
+  - platform: numeric_state
+    entity_id: !input methane_settings.methane_sensor
+    above: !input methane_settings.max_methane
+    id: Methane
 
 action:
-  # Notification actions based on which trigger fired.
   - choose:
-      - conditions:
-          - condition: trigger
-            id: PM2.5
-        sequence:
-          - service: !input notification_service
-            data:
-              message: >-
-                {{ air_quality_type | capitalize }} PM2.5 levels in {{ room }} have been detected.
-              title: "{{ air_quality_type | capitalize }} PM2.5 Levels"
-              data:
-                clickAction: /lovelace/home
-                url: /lovelace/home
-                icon_url: "/local/icons/{{ pm25_icon | replace('mdi:', '') }}.png"
       - conditions:
           - condition: trigger
             id: CO2
         sequence:
-          - service: !input notification_service
+          - service: notify.notify
             data:
-              message: >-
-                {{ air_quality_type | capitalize }} CO₂ levels in {{ room }} have been detected.
-                Recommend opening a window.
-              title: "{{ air_quality_type | capitalize }} CO₂ Levels"
-              data:
-                clickAction: /lovelace/home
-                url: /lovelace/home
-                icon_url: "/local/icons/{{ co2_icon | replace('mdi:', '') }}.png"
+              title: "{{ area_name }} CO₂ {{ air_quality_type }} Alert"
+              message: "CO₂ is {{ states(co2_sensor) }}ppm, exceeding {{ max_co2 }}ppm."
+      - conditions:
+          - condition: trigger
+            id: PM2.5
+        sequence:
+          - service: notify.notify
+            data:
+              title: "{{ area_name }} PM2.5 {{ air_quality_type }} Alert"
+              message: "PM2.5 is {{ states(pm25_sensor) }}µg/m³, exceeding {{ max_pm25 }}µg/m³."
       - conditions:
           - condition: trigger
             id: VOC
         sequence:
-          - service: !input notification_service
+          - service: notify.notify
             data:
-              message: >-
-                {{ air_quality_type | capitalize }} VOC levels in {{ room }} have been detected.
-              title: "{{ air_quality_type | capitalize }} VOC Levels"
-              data:
-                clickAction: /lovelace/home
-                url: /lovelace/home
-                icon_url: "/local/icons/{{ voc_icon | replace('mdi:', '') }}.png"
-  # Optional actions: turn on a light and/or activate a scene if configured.
-  - choose:
+              title: "{{ area_name }} VOC {{ air_quality_type }} Alert"
+              message: "VOC is {{ states(voc_sensor) }}, exceeding {{ max_voc }}."
       - conditions:
-          - condition: template
-            value_template: "{{ light_to_turn_on is not none }}"
+          - condition: trigger
+            id: NOx
         sequence:
-          - service: light.turn_on
-            target:
-              entity_id: !input light_to_turn_on
+          - service: notify.notify
+            data:
+              title: "{{ area_name }} NOx {{ air_quality_type }} Alert"
+              message: "NOx is {{ states(nox_sensor) }}ppb, exceeding {{ max_nox }}ppb."
       - conditions:
-          - condition: template
-            value_template: "{{ scene_to_activate is not none }}"
+          - condition: trigger
+            id: CO
         sequence:
-          - service: scene.turn_on
-            target:
-              entity_id: !input scene_to_activate
+          - service: notify.notify
+            data:
+              title: "{{ area_name }} Carbon Monoxide {{ air_quality_type }} Alert"
+              message: "Carbon Monoxide is {{ states(carbon_monoxide_sensor) }}ppm, exceeding {{ max_carbon_monoxide }}ppm."
+      - conditions:
+          - condition: trigger
+            id: Ethanol
+        sequence:
+          - service: notify.notify
+            data:
+              title: "{{ area_name }} Ethanol {{ air_quality_type }} Alert"
+              message: "Ethanol is {{ states(ethanol_sensor) }}ppb, exceeding {{ max_ethanol }}ppb."
+      - conditions:
+          - condition: trigger
+            id: Hydrogen
+        sequence:
+          - service: notify.notify
+            data:
+              title: "{{ area_name }} Hydrogen {{ air_quality_type }} Alert"
+              message: "Hydrogen is {{ states(hydrogen_sensor) }}ppm, exceeding {{ max_hydrogen }}ppm."
+      - conditions:
+          - condition: trigger
+            id: NO2
+        sequence:
+          - service: notify.notify
+            data:
+              title: "{{ area_name }} NO₂ {{ air_quality_type }} Alert"
+              message: "NO₂ is {{ states(no2_sensor) }}ppb, exceeding {{ max_no2 }}ppb."
+      - conditions:
+          - condition: trigger
+            id: Ammonia
+        sequence:
+          - service: notify.notify
+            data:
+              title: "{{ area_name }} Ammonia {{ air_quality_type }} Alert"
+              message: "Ammonia is {{ states(ammonia_sensor) }}ppm, exceeding {{ max_ammonia }}ppm."
+      - conditions:
+          - condition: trigger
+            id: Methane
+        sequence:
+          - service: notify.notify
+            data:
+              title: "{{ area_name }} Methane {{ air_quality_type }} Alert"
+              message: "Methane is {{ states(methane_sensor) }}ppm, exceeding {{ max_methane }}ppm."
+  - service: light.turn_on
+    target:
+      entity_id: !input apollo_led_settings.apollo_led
+  - service: scene.turn_on
+    target:
+      entity_id: !input apollo_led_settings.apollo_scene
 mode: single
