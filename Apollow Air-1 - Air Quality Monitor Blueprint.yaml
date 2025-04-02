@@ -41,36 +41,36 @@ blueprint:
           domain: timer
     air_quality_device:
       name: Air Quality Device
-      description: The device that provides the air quality sensor data.
+      description: "The device that provides the air quality sensor data."
       selector:
         device: {}
     pm25_sensor:
       name: PM2.5 Sensor
-      description: Sensor for particulate matter (PM2.5).
+      description: "Sensor for particulate matter (PM2.5)."
       selector:
         entity:
           domain: sensor
     co2_sensor:
       name: Carbon Dioxide Sensor
-      description: Sensor for carbon dioxide.
+      description: "Sensor for carbon dioxide."
       selector:
         entity:
           domain: sensor
     voc_sensor:
       name: VOC Sensor
-      description: Sensor for volatile organic compounds.
+      description: "Sensor for volatile organic compounds."
       selector:
         entity:
           domain: sensor
     light_entity:
       name: Light Entity
-      description: The light to turn on when air quality conditions are met.
+      description: "The light to turn on when air quality conditions are met."
       selector:
         entity:
           domain: light
     scene_entity:
       name: Air Quality Scene
-      description: The scene to activate for air quality notifications.
+      description: "The scene to activate for air quality notifications."
       selector:
         entity:
           domain: scene
@@ -86,43 +86,42 @@ blueprint:
       default: 9
       selector:
         number:
-          unit_of_measurement: "µg/m³"
           min: 0
           max: 500
+          unit_of_measurement: "µg/m³"
     custom_pm25_max:
       name: Custom PM2.5 Maximum
       description: "Used only if air quality type is Custom"
       default: 35.4
       selector:
         number:
-          unit_of_measurement: "µg/m³"
           min: 0
           max: 500
+          unit_of_measurement: "µg/m³"
     custom_co2_min:
       name: Custom CO₂ Minimum
       description: "Used only if air quality type is Custom"
       default: 800
       selector:
         number:
-          unit_of_measurement: "ppm"
           min: 0
           max: 5000
+          unit_of_measurement: "ppm"
     custom_co2_max:
       name: Custom CO₂ Maximum
       description: "Used only if air quality type is Custom"
       default: 1000
       selector:
         number:
-          unit_of_measurement: "ppm"
           min: 0
           max: 5000
+          unit_of_measurement: "ppm"
     custom_voc_min:
       name: Custom VOC Minimum
       description: "Used only if air quality type is Custom"
       default: 101
       selector:
         number:
-          unit_of_measurement: ""
           min: 0
           max: 1000
     custom_voc_max:
@@ -131,7 +130,6 @@ blueprint:
       default: 150
       selector:
         number:
-          unit_of_measurement: ""
           min: 0
           max: 1000
     co2_click_action:
