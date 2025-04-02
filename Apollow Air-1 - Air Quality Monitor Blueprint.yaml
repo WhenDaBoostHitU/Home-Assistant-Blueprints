@@ -1,310 +1,242 @@
 blueprint:
-  name: Air Quality with Type Selection (Custom Notifications, Room, Rate Limiting & Template Triggers)
+  name: Air Quality - Customizable Alert
   description: >
-    This blueprint triggers actions based on air quality sensor readings.
-    Select an air quality type (Good, Moderate, Bad, Severe, or Custom) and use preset thresholds unless Custom is chosen.
-    Customize the clickAction, URL, and icon for each notification.
-    Optionally enable rate limiting (using a timer helper set to 5 minutes) so that notifications will not be sent if one was sent in the past 5 minutes.
-    Also, specify the Room/Area where the sensor is located; this value will be included in the notifications.
+    This blueprint monitors air quality sensors for PM2.5, CO₂, and VOC levels and triggers alerts
+    when sensor values are within defined thresholds. Customize the air quality type label (e.g. "moderate"),
+    thresholds, icons, and the room/area. Optionally, select a light and/or scene to activate during the alert.
   domain: automation
   input:
-    air_quality_type:
-      name: Air Quality Type
-      description: >
-        Select the air quality type to monitor. If "Custom" is selected, the custom thresholds below will be used.
-      default: Moderate
-      selector:
-        select:
-          options:
-            - Good
-            - Moderate
-            - Bad
-            - Severe
-            - Custom
     room:
       name: Room/Area
-      description: "The room or area for which the air quality is being monitored."
-      default: "Living Room"
+      description: "The room or area where the sensors are located."
+      default: Living Room
       selector:
         text: {}
-    enable_rate_limit:
-      name: Enable Rate Limiting
-      description: "If enabled, notifications will not be sent if one was sent within the past 5 minutes."
-      default: false
+    air_quality_type:
+      name: Air Quality Type
+      description: "Label for the air quality type (e.g. moderate)."
+      default: moderate
       selector:
-        boolean: {}
-    rate_limit_timer:
-      name: Rate Limit Timer
-      description: "Timer helper to rate limit notifications (should be set to 5 minutes)."
-      selector:
-        entity:
-          domain: timer
+        text: {}
+    #
+    # PM2.5 Settings
+    #
     pm25_sensor:
       name: PM2.5 Sensor
-      description: "Sensor for particulate matter (PM2.5)."
+      description: "Select the PM2.5 sensor."
       selector:
         entity:
           domain: sensor
-    co2_sensor:
-      name: Carbon Dioxide Sensor
-      description: "Sensor for carbon dioxide."
-      selector:
-        entity:
-          domain: sensor
-    voc_sensor:
-      name: VOC Sensor
-      description: "Sensor for volatile organic compounds."
-      selector:
-        entity:
-          domain: sensor
-    light_entity:
-      name: Light Entity
-      description: "The light to turn on when air quality conditions are met."
-      selector:
-        entity:
-          domain: light
-    scene_entity:
-      name: Air Quality Scene
-      description: "The scene to activate for air quality notifications."
-      selector:
-        entity:
-          domain: scene
-    notify_service:
-      name: Notification Service
-      description: "The notification service to call (e.g. notify.mobile_app_device)."
-      default: "notify.mobile_app_device"
-      selector:
-        text: {}
-    custom_pm25_min:
-      name: Custom PM2.5 Minimum
-      description: "Used only if air quality type is Custom"
+    pm25_trigger_above:
+      name: PM2.5 Trigger Above
+      description: "Minimum PM2.5 value to trigger the alert."
       default: 9
       selector:
         number:
           min: 0
-          max: 500
-          unit_of_measurement: "µg/m³"
-    custom_pm25_max:
-      name: Custom PM2.5 Maximum
-      description: "Used only if air quality type is Custom"
-      default: 35.4
+    pm25_trigger_below:
+      name: PM2.5 Trigger Below
+      description: "Maximum PM2.5 value to trigger the alert."
+      default: 35.5
       selector:
         number:
           min: 0
-          max: 500
-          unit_of_measurement: "µg/m³"
-    custom_co2_min:
-      name: Custom CO₂ Minimum
-      description: "Used only if air quality type is Custom"
-      default: 800
+    pm25_condition_below:
+      name: PM2.5 Condition Below
+      description: "Ensure PM2.5 value is below this threshold to validate the alert."
+      default: 35.5
       selector:
         number:
           min: 0
-          max: 5000
-          unit_of_measurement: "ppm"
-    custom_co2_max:
-      name: Custom CO₂ Maximum
-      description: "Used only if air quality type is Custom"
+    pm25_icon:
+      name: PM2.5 Icon
+      description: "Icon to use in the PM2.5 notification."
+      default: mdi:chemical-weapon-yellow
+      selector:
+        icon: {}
+    #
+    # CO₂ Settings
+    #
+    co2_sensor:
+      name: CO₂ Sensor
+      description: "Select the CO₂ sensor."
+      selector:
+        entity:
+          domain: sensor
+    co2_trigger_above:
+      name: CO₂ Trigger Above
+      description: "Minimum CO₂ value to trigger the alert."
+      default: 799
+      selector:
+        number:
+          min: 0
+    co2_trigger_below:
+      name: CO₂ Trigger Below
+      description: "Maximum CO₂ value to trigger the alert."
       default: 1000
       selector:
         number:
           min: 0
-          max: 5000
-          unit_of_measurement: "ppm"
-    custom_voc_min:
-      name: Custom VOC Minimum
-      description: "Used only if air quality type is Custom"
-      default: 101
+    co2_condition_below:
+      name: CO₂ Condition Below
+      description: "Ensure CO₂ value is below this threshold to validate the alert."
+      default: 1000
       selector:
         number:
           min: 0
-          max: 1000
-    custom_voc_max:
-      name: Custom VOC Maximum
-      description: "Used only if air quality type is Custom"
+    co2_icon:
+      name: CO₂ Icon
+      description: "Icon to use in the CO₂ notification."
+      default: mdi:molecule-co2-yellow
+      selector:
+        icon: {}
+    #
+    # VOC Settings
+    #
+    voc_sensor:
+      name: VOC Sensor
+      description: "Select the VOC sensor."
+      selector:
+        entity:
+          domain: sensor
+    voc_trigger_above:
+      name: VOC Trigger Above
+      description: "Minimum VOC value to trigger the alert."
+      default: 99
+      selector:
+        number:
+          min: 0
+    voc_trigger_below:
+      name: VOC Trigger Below
+      description: "Maximum VOC value to trigger the alert."
       default: 150
       selector:
         number:
           min: 0
-          max: 1000
-    co2_click_action:
-      name: CO₂ Notification Click Action
-      description: "The click action for the CO₂ notification."
-      default: "/lovelace/home"
+    voc_icon:
+      name: VOC Icon
+      description: "Icon to use in the VOC notification."
+      default: mdi:radiator-yellow
       selector:
-        text: {}
-    co2_url:
-      name: CO₂ Notification URL
-      description: "The URL for the CO₂ notification."
-      default: "/lovelace/home"
+        icon: {}
+    #
+    # Optional Actions
+    #
+    light_to_turn_on:
+      name: Light to Turn On
+      description: "Select a light to turn on during the alert (optional)."
       selector:
-        text: {}
-    co2_icon_url:
-      name: CO₂ Notification Icon URL
-      description: "The icon URL for the CO₂ notification."
-      default: "/local/icons/molecule-co2-yellow.png"
+        device:
+          integration: hass
+          domain: light
+      default: ""
+    scene_to_activate:
+      name: Scene to Activate
+      description: "Select a scene to activate during the alert (optional)."
       selector:
-        text: {}
-    pm25_click_action:
-      name: PM2.5 Notification Click Action
-      description: "The click action for the PM2.5 notification."
-      default: "/lovelace/home"
+        entity:
+          domain: scene
+      default: ""
+    notification_service:
+      name: Notification Service
+      description: "Select the notification service to send alerts."
       selector:
-        text: {}
-    pm25_url:
-      name: PM2.5 Notification URL
-      description: "The URL for the PM2.5 notification."
-      default: "/lovelace/home"
-      selector:
-        text: {}
-    pm25_icon_url:
-      name: PM2.5 Notification Icon URL
-      description: "The icon URL for the PM2.5 notification."
-      default: "/local/icons/chemical-weapon-yellow.png"
-      selector:
-        text: {}
-    voc_click_action:
-      name: VOC Notification Click Action
-      description: "The click action for the VOC notification."
-      default: "/lovelace/home"
-      selector:
-        text: {}
-    voc_url:
-      name: VOC Notification URL
-      description: "The URL for the VOC notification."
-      default: "/lovelace/home"
-      selector:
-        text: {}
-    voc_icon_url:
-      name: VOC Notification Icon URL
-      description: "The icon URL for the VOC notification."
-      default: "/local/icons/radiator-yellow.png"
-      selector:
-        text: {}
+        service: {}
+      default: notify.mobile_app_sm_s908u
 
 trigger:
-  - platform: template
-    value_template: >
-      {% set val = states(pm25_sensor)|float %}
-      {% if air_quality_type == "Good" %}
-        {{ val >= 0 and val <= 9 }}
-      {% elif air_quality_type == "Moderate" %}
-        {{ val > 9 and val <= 35.4 }}
-      {% elif air_quality_type == "Bad" %}
-        {{ val > 35.4 and val <= 55.4 }}
-      {% elif air_quality_type == "Severe" %}
-        {{ val > 55.4 }}
-      {% else %}
-        {{ val >= custom_pm25_min and val <= custom_pm25_max }}
-      {% endif %}
+  - platform: device
+    device_id: !input pm25_sensor
+    domain: sensor
+    entity_id: !input pm25_sensor
+    type: pm25
+    above: !input pm25_trigger_above
+    below: !input pm25_trigger_below
     id: PM2.5
-  - platform: template
-    value_template: >
-      {% set val = states(co2_sensor)|float %}
-      {% if air_quality_type == "Good" %}
-        {{ val < 800 }}
-      {% elif air_quality_type == "Moderate" %}
-        {{ val >= 800 and val <= 1000 }}
-      {% elif air_quality_type == "Bad" %}
-        {{ val >= 1001 and val <= 1500 }}
-      {% elif air_quality_type == "Severe" %}
-        {{ val > 1500 }}
-      {% else %}
-        {{ val >= custom_co2_min and val <= custom_co2_max }}
-      {% endif %}
+  - platform: device
+    device_id: !input co2_sensor
+    domain: sensor
+    entity_id: !input co2_sensor
+    type: carbon_dioxide
+    above: !input co2_trigger_above
+    below: !input co2_trigger_below
     id: CO2
-  - platform: template
-    value_template: >
-      {% set val = states(voc_sensor)|float %}
-      {% if air_quality_type == "Good" %}
-        {{ val >= 0 and val <= 100 }}
-      {% elif air_quality_type == "Moderate" %}
-        {{ val >= 101 and val <= 150 }}
-      {% elif air_quality_type == "Bad" %}
-        {{ val >= 151 and val <= 250 }}
-      {% elif air_quality_type == "Severe" %}
-        {{ val > 250 }}
-      {% else %}
-        {{ val >= custom_voc_min and val <= custom_voc_max }}
-      {% endif %}
+  - platform: numeric_state
+    entity_id: !input voc_sensor
+    above: !input voc_trigger_above
+    below: !input voc_trigger_below
     id: VOC
 
-mode: single
+condition:
+  - condition: and
+    conditions:
+      - condition: numeric_state
+        entity_id: !input pm25_sensor
+        below: !input pm25_condition_below
+      - condition: numeric_state
+        entity_id: !input co2_sensor
+        below: !input co2_condition_below
+      - condition: numeric_state
+        entity_id: !input voc_sensor
+        below: !input voc_trigger_below
 
 action:
-  - service: light.turn_on
-    target:
-      entity_id: !input light_entity
-  - service: scene.turn_on
-    target:
-      entity_id: !input scene_entity
+  # Notification actions based on which trigger fired.
   - choose:
       - conditions:
           - condition: trigger
-            id: CO2
-          - condition: template
-            value_template: >
-              {{ not enable_rate_limit or (states(rate_limit_timer) | string == 'idle') }}
+            id: PM2.5
         sequence:
-          - service: !input notify_service
+          - service: !input notification_service
             data:
-              title: "{{ air_quality_type }} CO₂ in {{ room }}"
-              message: "CO₂ levels in the {{ room }} have reached {{ trigger.to_state.state }}."
+              message: >-
+                {{ air_quality_type | capitalize }} PM2.5 levels in {{ room }} have been detected.
+              title: "{{ air_quality_type | capitalize }} PM2.5 Levels"
               data:
-                clickAction: !input co2_click_action
-                url: !input co2_url
-                icon_url: !input co2_icon_url
-          - choose:
-              - conditions:
-                  - condition: template
-                    value_template: "{{ enable_rate_limit }}"
-                sequence:
-                  - service: timer.start
-                    target:
-                      entity_id: !input rate_limit_timer
+                clickAction: /lovelace/home
+                url: /lovelace/home
+                icon_url: "/local/icons/{{ pm25_icon | replace('mdi:', '') }}.png"
       - conditions:
           - condition: trigger
-            id: PM2.5
-          - condition: template
-            value_template: >
-              {{ not enable_rate_limit or (states(rate_limit_timer) | string == 'idle') }}
+            id: CO2
         sequence:
-          - service: !input notify_service
+          - service: !input notification_service
             data:
-              title: "{{ air_quality_type }} PM2.5 in {{ room }}"
-              message: "PM2.5 levels in the {{ room }} have reached {{ trigger.to_state.state }}."
+              message: >-
+                {{ air_quality_type | capitalize }} CO₂ levels in {{ room }} have been detected.
+                Recommend opening a window.
+              title: "{{ air_quality_type | capitalize }} CO₂ Levels"
               data:
-                clickAction: !input pm25_click_action
-                url: !input pm25_url
-                icon_url: !input pm25_icon_url
-          - choose:
-              - conditions:
-                  - condition: template
-                    value_template: "{{ enable_rate_limit }}"
-                sequence:
-                  - service: timer.start
-                    target:
-                      entity_id: !input rate_limit_timer
+                clickAction: /lovelace/home
+                url: /lovelace/home
+                icon_url: "/local/icons/{{ co2_icon | replace('mdi:', '') }}.png"
       - conditions:
           - condition: trigger
             id: VOC
-          - condition: template
-            value_template: >
-              {{ not enable_rate_limit or (states(rate_limit_timer) | string == 'idle') }}
         sequence:
-          - service: !input notify_service
+          - service: !input notification_service
             data:
-              title: "{{ air_quality_type }} VOC in {{ room }}"
-              message: "VOC levels in the {{ room }} have reached {{ trigger.to_state.state }}."
+              message: >-
+                {{ air_quality_type | capitalize }} VOC levels in {{ room }} have been detected.
+              title: "{{ air_quality_type | capitalize }} VOC Levels"
               data:
-                clickAction: !input voc_click_action
-                url: !input voc_url
-                icon_url: !input voc_icon_url
-          - choose:
-              - conditions:
-                  - condition: template
-                    value_template: "{{ enable_rate_limit }}"
-                sequence:
-                  - service: timer.start
-                    target:
-                      entity_id: !input rate_limit_timer
+                clickAction: /lovelace/home
+                url: /lovelace/home
+                icon_url: "/local/icons/{{ voc_icon | replace('mdi:', '') }}.png"
+  # Optional actions: turn on a light and/or activate a scene if configured.
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ light_to_turn_on != '' }}"
+        sequence:
+          - service: light.turn_on
+            target:
+              device_id: !input light_to_turn_on
+      - conditions:
+          - condition: template
+            value_template: "{{ scene_to_activate != '' }}"
+        sequence:
+          - service: scene.turn_on
+            target:
+              entity_id: !input scene_to_activate
+mode: single
