@@ -33,6 +33,7 @@ blueprint:
       default: 9
       selector:
         number:
+          mode: slider
           min: 0
           max: 500
     pm25_trigger_below:
@@ -41,6 +42,7 @@ blueprint:
       default: 35.5
       selector:
         number:
+          mode: slider
           min: 0
           max: 500
     pm25_condition_below:
@@ -49,6 +51,7 @@ blueprint:
       default: 35.5
       selector:
         number:
+          mode: slider
           min: 0
           max: 500
     pm25_icon:
@@ -72,6 +75,7 @@ blueprint:
       default: 799
       selector:
         number:
+          mode: slider
           min: 0
           max: 5000
     co2_trigger_below:
@@ -80,6 +84,7 @@ blueprint:
       default: 1000
       selector:
         number:
+          mode: slider
           min: 0
           max: 5000
     co2_condition_below:
@@ -88,6 +93,7 @@ blueprint:
       default: 1000
       selector:
         number:
+          mode: slider
           min: 0
           max: 5000
     co2_icon:
@@ -111,6 +117,7 @@ blueprint:
       default: 99
       selector:
         number:
+          mode: slider
           min: 0
           max: 1000
     voc_trigger_below:
@@ -119,6 +126,7 @@ blueprint:
       default: 150
       selector:
         number:
+          mode: slider
           min: 0
           max: 1000
     voc_icon:
@@ -136,14 +144,14 @@ blueprint:
       selector:
         entity:
           domain: light
-      default: ""
+      default: null
     scene_to_activate:
       name: Scene to Activate
       description: "Select a scene to activate during the alert (optional)."
       selector:
         entity:
           domain: scene
-      default: ""
+      default: null
     notification_service:
       name: Notification Service
       description: "Notification service to send alerts (e.g. notify.mobile_app_sm_s908u)."
@@ -235,14 +243,14 @@ action:
   - choose:
       - conditions:
           - condition: template
-            value_template: "{{ light_to_turn_on != '' }}"
+            value_template: "{{ light_to_turn_on is not none }}"
         sequence:
           - service: light.turn_on
             target:
               entity_id: !input light_to_turn_on
       - conditions:
           - condition: template
-            value_template: "{{ scene_to_activate != '' }}"
+            value_template: "{{ scene_to_activate is not none }}"
         sequence:
           - service: scene.turn_on
             target:
