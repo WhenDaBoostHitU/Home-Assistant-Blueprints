@@ -1,5 +1,5 @@
 blueprint:
-  name: Air Quality with Type Selection (Custom Notifications, Room, Rate Limiting & Template Conditions)
+  name: Air Quality with Type Selection (Custom Notifications, Room, Rate Limiting & Template Triggers)
   description: >
     This blueprint triggers actions based on air quality sensor readings.
     Select an air quality type (Good, Moderate, Bad, Severe, or Custom) and use preset thresholds unless Custom is chosen.
@@ -39,11 +39,6 @@ blueprint:
       selector:
         entity:
           domain: timer
-    air_quality_device:
-      name: Air Quality Device
-      description: "The device that provides the air quality sensor data."
-      selector:
-        device: {}
     pm25_sensor:
       name: PM2.5 Sensor
       description: "Sensor for particulate matter (PM2.5)."
@@ -188,139 +183,51 @@ blueprint:
         text: {}
 
 trigger:
-  - platform: device
-    type: pm25
-    device_id: !input air_quality_device
-    entity_id: !input pm25_sensor
-    domain: sensor
-    above: >
+  - platform: template
+    value_template: >
+      {% set val = states(pm25_sensor)|float %}
       {% if air_quality_type == "Good" %}
-        0
+        {{ val >= 0 and val <= 9 }}
       {% elif air_quality_type == "Moderate" %}
-        9.1
+        {{ val > 9 and val <= 35.4 }}
       {% elif air_quality_type == "Bad" %}
-        35.5
+        {{ val > 35.4 and val <= 55.4 }}
       {% elif air_quality_type == "Severe" %}
-        55.4
+        {{ val > 55.4 }}
       {% else %}
-        {{ custom_pm25_min }}
-      {% endif %}
-    below: >
-      {% if air_quality_type == "Good" %}
-        9
-      {% elif air_quality_type == "Moderate" %}
-        35.4
-      {% elif air_quality_type == "Bad" %}
-        55.4
-      {% elif air_quality_type == "Severe" %}
-        9999
-      {% else %}
-        {{ custom_pm25_max }}
+        {{ val >= custom_pm25_min and val <= custom_pm25_max }}
       {% endif %}
     id: PM2.5
-  - platform: device
-    type: carbon_dioxide
-    device_id: !input air_quality_device
-    entity_id: !input co2_sensor
-    domain: sensor
-    above: >
+  - platform: template
+    value_template: >
+      {% set val = states(co2_sensor)|float %}
       {% if air_quality_type == "Good" %}
-        0
+        {{ val < 800 }}
       {% elif air_quality_type == "Moderate" %}
-        800
+        {{ val >= 800 and val <= 1000 }}
       {% elif air_quality_type == "Bad" %}
-        1001
+        {{ val >= 1001 and val <= 1500 }}
       {% elif air_quality_type == "Severe" %}
-        1500
+        {{ val > 1500 }}
       {% else %}
-        {{ custom_co2_min }}
-      {% endif %}
-    below: >
-      {% if air_quality_type == "Good" %}
-        800
-      {% elif air_quality_type == "Moderate" %}
-        1000
-      {% elif air_quality_type == "Bad" %}
-        1500
-      {% elif air_quality_type == "Severe" %}
-        9999
-      {% else %}
-        {{ custom_co2_max }}
+        {{ val >= custom_co2_min and val <= custom_co2_max }}
       {% endif %}
     id: CO2
-  - platform: numeric_state
-    entity_id: !input voc_sensor
-    above: >
+  - platform: template
+    value_template: >
+      {% set val = states(voc_sensor)|float %}
       {% if air_quality_type == "Good" %}
-        0
+        {{ val >= 0 and val <= 100 }}
       {% elif air_quality_type == "Moderate" %}
-        101
+        {{ val >= 101 and val <= 150 }}
       {% elif air_quality_type == "Bad" %}
-        151
+        {{ val >= 151 and val <= 250 }}
       {% elif air_quality_type == "Severe" %}
-        251
+        {{ val > 250 }}
       {% else %}
-        {{ custom_voc_min }}
-      {% endif %}
-    below: >
-      {% if air_quality_type == "Good" %}
-        101
-      {% elif air_quality_type == "Moderate" %}
-        151
-      {% elif air_quality_type == "Bad" %}
-        251
-      {% elif air_quality_type == "Severe" %}
-        9999
-      {% else %}
-        {{ custom_voc_max }}
+        {{ val >= custom_voc_min and val <= custom_voc_max }}
       {% endif %}
     id: VOC
-
-condition:
-  - condition: and
-    conditions:
-      - condition: template
-        value_template: >
-          {% set pm25_val = states(pm25_sensor)|float %}
-          {% if air_quality_type == "Good" %}
-            {{ pm25_val < 9 }}
-          {% elif air_quality_type == "Moderate" %}
-            {{ pm25_val < 35.4 }}
-          {% elif air_quality_type == "Bad" %}
-            {{ pm25_val < 55.4 }}
-          {% elif air_quality_type == "Severe" %}
-            {{ pm25_val < 9999 }}
-          {% else %}
-            {{ pm25_val < (custom_pm25_max|float) }}
-          {% endif %}
-      - condition: template
-        value_template: >
-          {% set co2_val = states(co2_sensor)|float %}
-          {% if air_quality_type == "Good" %}
-            {{ co2_val < 800 }}
-          {% elif air_quality_type == "Moderate" %}
-            {{ co2_val < 1000 }}
-          {% elif air_quality_type == "Bad" %}
-            {{ co2_val < 1500 }}
-          {% elif air_quality_type == "Severe" %}
-            {{ co2_val < 9999 }}
-          {% else %}
-            {{ co2_val < (custom_co2_max|float) }}
-          {% endif %}
-      - condition: template
-        value_template: >
-          {% set voc_val = states(voc_sensor)|float %}
-          {% if air_quality_type == "Good" %}
-            {{ voc_val < 101 }}
-          {% elif air_quality_type == "Moderate" %}
-            {{ voc_val < 151 }}
-          {% elif air_quality_type == "Bad" %}
-            {{ voc_val < 251 }}
-          {% elif air_quality_type == "Severe" %}
-            {{ voc_val < 9999 }}
-          {% else %}
-            {{ voc_val < (custom_voc_max|float) }}
-          {% endif %}
 
 mode: single
 
@@ -337,7 +244,7 @@ action:
             id: CO2
           - condition: template
             value_template: >
-              {{ not enable_rate_limit or (states(rate_limit_timer) == 'idle') }}
+              {{ not enable_rate_limit or (states(rate_limit_timer) | string == 'idle') }}
         sequence:
           - service: !input notify_service
             data:
@@ -360,7 +267,7 @@ action:
             id: PM2.5
           - condition: template
             value_template: >
-              {{ not enable_rate_limit or (states(rate_limit_timer) == 'idle') }}
+              {{ not enable_rate_limit or (states(rate_limit_timer) | string == 'idle') }}
         sequence:
           - service: !input notify_service
             data:
@@ -383,7 +290,7 @@ action:
             id: VOC
           - condition: template
             value_template: >
-              {{ not enable_rate_limit or (states(rate_limit_timer) == 'idle') }}
+              {{ not enable_rate_limit or (states(rate_limit_timer) | string == 'idle') }}
         sequence:
           - service: !input notify_service
             data:
