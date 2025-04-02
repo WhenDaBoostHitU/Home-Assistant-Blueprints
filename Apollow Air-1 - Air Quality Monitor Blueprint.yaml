@@ -157,8 +157,7 @@ blueprint:
       description: "Notification service to send alerts (e.g. notify.mobile_app_sm_s908u)."
       default: notify.mobile_app_sm_s908u
       selector:
-        text:
-          placeholder: "notify.mobile_app_sm_s908u"
+        text: {}
 
 trigger:
   - platform: device
