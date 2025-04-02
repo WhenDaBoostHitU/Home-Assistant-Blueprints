@@ -3,6 +3,9 @@ blueprint:
   description: >
     This blueprint triggers actions based on air quality sensor readings.
     Select an air quality type (Good, Moderate, Bad, Severe, or Custom) and use preset thresholds unless Custom is chosen.
+    Customize the clickAction, URL, and icon for each notification.
+    Optionally enable rate limiting (using a timer helper set to 5 minutes) so that notifications will not be sent if one was sent in the past 5 minutes.
+    Also, specify the Room/Area where the sensor is located; this value will be included in the notifications.
   domain: automation
   input:
     air_quality_type:
@@ -73,10 +76,10 @@ blueprint:
           domain: scene
     notify_service:
       name: Notification Service
-      description: The notification service to call.
+      description: "The notification service to call (e.g. notify.mobile_app_device)."
+      default: "notify.mobile_app_device"
       selector:
-        service:
-          domain: notify
+        text: {}
     custom_pm25_min:
       name: Custom PM2.5 Minimum
       description: "Used only if air quality type is Custom"
@@ -84,6 +87,8 @@ blueprint:
       selector:
         number:
           unit_of_measurement: "µg/m³"
+          min: 0
+          max: 500
     custom_pm25_max:
       name: Custom PM2.5 Maximum
       description: "Used only if air quality type is Custom"
@@ -91,6 +96,8 @@ blueprint:
       selector:
         number:
           unit_of_measurement: "µg/m³"
+          min: 0
+          max: 500
     custom_co2_min:
       name: Custom CO₂ Minimum
       description: "Used only if air quality type is Custom"
@@ -98,6 +105,8 @@ blueprint:
       selector:
         number:
           unit_of_measurement: "ppm"
+          min: 0
+          max: 5000
     custom_co2_max:
       name: Custom CO₂ Maximum
       description: "Used only if air quality type is Custom"
@@ -105,6 +114,8 @@ blueprint:
       selector:
         number:
           unit_of_measurement: "ppm"
+          min: 0
+          max: 5000
     custom_voc_min:
       name: Custom VOC Minimum
       description: "Used only if air quality type is Custom"
@@ -112,6 +123,8 @@ blueprint:
       selector:
         number:
           unit_of_measurement: ""
+          min: 0
+          max: 1000
     custom_voc_max:
       name: Custom VOC Maximum
       description: "Used only if air quality type is Custom"
@@ -119,6 +132,8 @@ blueprint:
       selector:
         number:
           unit_of_measurement: ""
+          min: 0
+          max: 1000
     co2_click_action:
       name: CO₂ Notification Click Action
       description: "The click action for the CO₂ notification."
